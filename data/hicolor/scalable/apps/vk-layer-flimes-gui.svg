@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46667"
+   version="1.1"
+   id="svg8">
+  <defs
+     id="defs2">
+    <rect
+       x="21.959111"
+       y="208.03775"
+       width="128.33235"
+       height="54.448579"
+       id="rect960" />
+    <rect
+       x="38.078146"
+       y="205.49238"
+       width="148.73777"
+       height="128.71844"
+       id="rect926" />
+    <rect
+       id="rect879"
+       height="67.827775"
+       width="115.86203"
+       y="201.11102"
+       x="23.49851" />
+    <marker
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="marker1185"
+       style="overflow:visible">
+      <path
+         id="path1183"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <marker
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lstart"
+       style="overflow:visible">
+      <path
+         id="path907"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <linearGradient
+       id="linearGradient1011">
+      <stop
+         style="stop-color:#e6f7fd;stop-opacity:1"
+         offset="0"
+         id="stop1007" />
+      <stop
+         style="stop-color:#a2b9bd;stop-opacity:1"
+         offset="1"
+         id="stop1009" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient1011"
+       id="linearGradient1013-3-3"
+       x1="57.502548"
+       y1="154.55713"
+       x2="43.345829"
+       y2="214.97858"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.5761769,0.59639538,-0.59453777,1.5821418,79.167041,-80.900165)" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect879-7" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect892" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect879-3" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect880-6" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect879-6" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect904" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect879-70" />
+    <rect
+       x="23.49851"
+       y="201.11102"
+       width="115.86203"
+       height="67.827774"
+       id="rect1016" />
+  </defs>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(0,-161.53332)">
+    <path
+       id="path868-3-2-8"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cc4141;stroke-width:14.5363;stroke-linejoin:round;stroke-miterlimit:2.9;stroke-dasharray:none;stroke-dashoffset:109.22;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 288.94382,-67.799202 A 59.683327,59.683327 0 0 1 229.26881,-8.1158758 59.683327,59.683327 0 0 1 169.57717,-67.782571"
+       transform="rotate(90)" />
+    <rect
+       y="-0.39587632"
+       x="-276.14548"
+       height="150.53474"
+       width="93.757637"
+       id="rect880-9"
+       style="opacity:1;fill:#4e437b;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.146163;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       transform="rotate(-90)" />
+    <path
+       id="path905-6"
+       d="M -0.68506637,193.0888 150.61453,193.47965"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:15.1175;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:2.9;stroke-dasharray:7.55876, 7.55876;stroke-dashoffset:75.5876;stroke-opacity:1" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:15.1175;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:2.9;stroke-dasharray:7.55876, 7.55876;stroke-dashoffset:75.5876;stroke-opacity:1"
+       d="M -0.94379598,265.34939 150.30932,265.74022"
+       id="path905-3-0" />
+    <rect
+       y="204.07928"
+       x="28.654823"
+       height="50.374737"
+       width="68.184166"
+       id="rect882-3-3-6"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.0975751;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers" />
+    <rect
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.0975752;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect882-3-3-6-7"
+       width="68.184174"
+       height="50.374741"
+       x="104.54396"
+       y="204.07928" />
+    <path
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#cc4141;stroke-width:14.5363;stroke-linejoin:round;stroke-miterlimit:2.9;stroke-dasharray:none;stroke-dashoffset:109.22;stroke-opacity:1;paint-order:stroke fill markers"
+       id="path868-3-2"
+       d="m 43.721921,174.62644 a 59.683327,59.683327 0 0 1 66.153439,12.37736 59.683327,59.683327 0 0 1 12.56669,66.11773 59.683327,59.683327 0 0 1 -56.999548,35.78446" />
+    <rect
+       style="opacity:1;fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.0975752;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect882-3-3-6-9"
+       width="68.184174"
+       height="50.374741"
+       x="-47.327805"
+       y="204.07928" />
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Exec=vk-layer-flimes-gui
+Icon=vk-layer-flimes-gui
+Name=Flimes Vulkan layer GUI
+Comment=GUI for vk-layer-flimes external control
+StartupNotify=false
+Type=Application
+Categories=Utility;
