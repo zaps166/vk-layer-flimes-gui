@@ -369,7 +369,7 @@ void MainWindow::updateAppsFps()
             fps = activeFps;
         if (!active && settings.inactive)
             fps = inactiveFps;
-        if (battery && settings.battery)
+        if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
             fps = batteryFps;
         m_externalControl->setFps(app, fps);
     }
