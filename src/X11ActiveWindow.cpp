@@ -23,21 +23,9 @@
 */
 
 #include "X11ActiveWindow.hpp"
+#include "X11Helpers.hpp"
 
 #include <QDebug>
-
-#include <memory>
-
-template<typename Ptr>
-static inline auto managePtr(Ptr *reply)
-{
-    return std::unique_ptr<Ptr, void(*)(void *)>(reply, free);
-}
-
-#define XCB_CALL(xcbFunc, conn, ...) \
-    managePtr(xcbFunc##_reply(conn, xcbFunc(conn, ##__VA_ARGS__), nullptr))
-
-/**/
 
 X11ActiveWindow::X11ActiveWindow()
     : m_conn(QX11Info::connection())

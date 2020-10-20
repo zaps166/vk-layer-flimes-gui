@@ -25,8 +25,11 @@
 #include "MainWindow.hpp"
 #include "ExternalControl.hpp"
 #include "X11ActiveWindow.hpp"
+#include "X11GlobalHotkey.hpp"
 #include "PowerSupply.hpp"
+#include "HotkeyDialog.hpp"
 
+#include <QDialogButtonBox>
 #include <QSystemTrayIcon>
 #include <QDoubleSpinBox>
 #include <QStandardPaths>
@@ -35,10 +38,12 @@
 #include <QListWidget>
 #include <QToolButton>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QSettings>
 #include <qevent.h>
+#include <QMenuBar>
 #include <QLabel>
 #include <QDebug>
 #include <QTimer>
@@ -46,10 +51,13 @@
 
 using namespace std;
 
+static_assert(sizeof(QtKeySequence) == sizeof(qulonglong));
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , m_externalControl(make_unique<ExternalControl>())
     , m_x11ActiveWindow(make_unique<X11ActiveWindow>())
+    , m_x11GlobalHotkey(make_unique<X11GlobalHotkey>())
     , m_powerSupply(make_unique<PowerSupply>())
     , m_settings(new QSettings(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "/" + QCoreApplication::applicationName() + ".ini", QSettings::IniFormat, this))
     , m_tray(new QSystemTrayIcon(this))
@@ -91,14 +99,22 @@ MainWindow::MainWindow(QWidget *parent)
         }
     });
     menu->addSeparator();
-    auto quitAct = menu->addAction("Quit", this, &MainWindow::quit);
-
-    quitAct->setShortcut(QKeySequence("Ctrl+Q"));
-    addAction(quitAct);
+    menu->addAction("Quit", this, &MainWindow::quit);
 
     m_tray->setIcon(QApplication::windowIcon());
     m_tray->setContextMenu(menu);
     m_tray->show();
+
+    auto mainMenu = menuBar()->addMenu("&Menu");
+    m_bypassAct = mainMenu->addAction("&Bypass");
+    if (m_x11GlobalHotkey->isOk())
+    {
+        mainMenu->addAction("&Set bypass hotkey", this, &MainWindow::setBypassHotkey);
+    }
+    mainMenu->addSeparator();
+    mainMenu->addAction("&Quit", this, &MainWindow::quit, QKeySequence("Ctrl+Q"));
+
+    m_bypassAct->setCheckable(true);
 
     m_activeFpsChecked->setChecked(m_settings->value("ActiveFpsChecked").toBool());
     m_activeFps->setDecimals(3);
@@ -188,6 +204,11 @@ MainWindow::MainWindow(QWidget *parent)
         m_activeWindowPid = pid;
         updateAppsFps();
     });
+    connect(m_x11GlobalHotkey.get(), &X11GlobalHotkey::activated,
+            this, [this](const QtKeySequence &qKeySeq) {
+        Q_UNUSED(qKeySeq)
+        toggleBypass();
+    });
     connect(m_powerSupply.get(), &PowerSupply::powerSourceChanged,
             this, &MainWindow::updateAppsFpsLater);
 
@@ -195,6 +216,12 @@ MainWindow::MainWindow(QWidget *parent)
             this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger)
             setVisible(!isVisible());
+    });
+
+    connect(m_bypassAct, &QAction::toggled,
+            this, [this](bool checked) {
+        centralWidget()->setEnabled(!checked);
+        updateAppsFpsLater();
     });
 
     connect(m_activeFpsChecked, &QCheckBox::toggled,
@@ -235,9 +262,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     updateAppsList();
 
-    QCoreApplication::instance()->installNativeEventFilter(m_x11ActiveWindow.get());
+    if (m_x11ActiveWindow->isOk())
+        QCoreApplication::instance()->installNativeEventFilter(m_x11ActiveWindow.get());
+    if (m_x11GlobalHotkey->isOk())
+        QCoreApplication::instance()->installNativeEventFilter(m_x11GlobalHotkey.get());
 
     setCentralWidget(w);
+
+    if (m_x11GlobalHotkey->isOk())
+    {
+        const auto bypassHotkeyInt = m_settings->value("BypassHotkey").toULongLong();
+        memcpy(&m_bypassHotkey, &bypassHotkeyInt, sizeof(qulonglong));
+        if (!registerHotkey())
+            m_bypassHotkey = {};
+    }
 
     m_geo = QByteArray::fromBase64(m_settings->value("Geometry").toByteArray());
 
@@ -256,6 +294,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (m_settings->value("Visible", true).toBool())
         show();
+
 }
 MainWindow::~MainWindow()
 {
@@ -287,6 +326,10 @@ MainWindow::~MainWindow()
         m_settings->setValue("BatteryFpsChecked", m_batteryFpsChecked->isChecked());
         m_settings->setValue("BatteryFps", m_batteryFps->value());
     }
+    if (m_x11GlobalHotkey->isOk())
+    {
+        m_settings->setValue("BypassHotkey", reinterpret_cast<qulonglong &>(m_bypassHotkey));
+    }
     m_settings->setValue("Geometry", m_geo.toBase64().constData());
 
     for (auto it = m_appSettings.begin(), itEnd = m_appSettings.end(); it != itEnd; ++it)
@@ -304,6 +347,11 @@ MainWindow::~MainWindow()
 inline QListWidgetItem *MainWindow::getSelectedItem() const
 {
     return m_appsList->selectedItems().value(0);
+}
+
+void MainWindow::toggleBypass()
+{
+    m_bypassAct->setChecked(!m_bypassAct->isChecked());
 }
 
 void MainWindow::updateAppsList()
@@ -358,19 +406,22 @@ void MainWindow::updateAppsFps()
 
     const bool battery = (m_powerSupply->isOk() && m_powerSupply->isBattery());
 
+    bool bypass = m_bypassAct->isChecked();
+
     for (auto &&app : m_externalControl->applications())
     {
-        const bool active = (app.pid == m_activeWindowPid);
-
-        auto &settings = m_appSettings[app.name];
-
         double fps = 0.0;
-        if (settings.active)
-            fps = activeFps;
-        if (!active && settings.inactive)
-            fps = inactiveFps;
-        if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
-            fps = batteryFps;
+        if (!bypass)
+        {
+            const bool active = (app.pid == m_activeWindowPid);
+            auto &settings = m_appSettings[app.name];
+            if (settings.active)
+                fps = activeFps;
+            if (!active && settings.inactive)
+                fps = inactiveFps;
+            if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
+                fps = batteryFps;
+        }
         m_externalControl->setFps(app, fps);
     }
 }
@@ -412,6 +463,34 @@ void MainWindow::appsListSelectionChanged()
     m_appBatteryEnabled->setChecked(settings.battery);
 
     m_appSettingsWidget->show();
+}
+
+void MainWindow::setBypassHotkey()
+{
+    HotkeyDialog d(this);
+    d.setKeySequence(m_bypassHotkey);
+
+    if (d.exec() != QDialog::Accepted)
+        return;
+
+    if (m_bypassHotkey.mod() && m_bypassHotkey.key())
+        m_x11GlobalHotkey->unregisterKeySequence(m_bypassHotkey);
+
+    m_bypassHotkey = d.getKeySequence();
+
+    registerHotkey();
+}
+
+bool MainWindow::registerHotkey()
+{
+    if (m_bypassHotkey.mod() && m_bypassHotkey.key())
+    {
+        if (m_x11GlobalHotkey->registerKeySequence(m_bypassHotkey))
+            return true;
+
+        qWarning() << "Can't register bypass hotkey";
+    }
+    return false;
 }
 
 void MainWindow::quit()

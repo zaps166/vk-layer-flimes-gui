@@ -24,10 +24,13 @@
 
 #pragma once
 
+#include "KeySequence.hpp"
+
 #include <QMainWindow>
 
 class ExternalControl;
 class X11ActiveWindow;
+class X11GlobalHotkey;
 class PowerSupply;
 
 class QListWidgetItem;
@@ -37,6 +40,7 @@ class QListWidget;
 class QToolButton;
 class QCheckBox;
 class QSettings;
+class QAction;
 class QTimer;
 
 class MainWindow : public QMainWindow
@@ -59,6 +63,8 @@ public:
 private:
     inline QListWidgetItem *getSelectedItem() const;
 
+    void toggleBypass();
+
     void updateAppsList();
 
     void updateAppsFpsLater();
@@ -67,6 +73,10 @@ private:
     void changeCurrAppSettings();
 
     void appsListSelectionChanged();
+
+    void setBypassHotkey();
+
+    bool registerHotkey();
 
     void quit();
 
@@ -78,11 +88,14 @@ private:
 private:
     const std::unique_ptr<ExternalControl> m_externalControl;
     const std::unique_ptr<X11ActiveWindow> m_x11ActiveWindow;
+    const std::unique_ptr<X11GlobalHotkey> m_x11GlobalHotkey;
     const std::unique_ptr<PowerSupply> m_powerSupply;
 
     QSettings *const m_settings;
 
     QSystemTrayIcon *const m_tray;
+
+    QAction *m_bypassAct = nullptr;
 
     QCheckBox *const m_activeFpsChecked;
     QDoubleSpinBox *const m_activeFps;
@@ -106,6 +119,8 @@ private:
     QTimer *const m_updateAppsFpsTimer;
 
     pid_t m_activeWindowPid = 0;
+
+    QtKeySequence m_bypassHotkey;
 
     QByteArray m_geo;
 };
