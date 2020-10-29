@@ -52,8 +52,18 @@ ExternalControl::ExternalControl()
 }
 ExternalControl::~ExternalControl()
 {
+    cleanup();
+}
+
+void ExternalControl::cleanup()
+{
+    if (m_cleanupDone)
+        return;
+
     m_flimesPlaceholderFile.remove();
     m_flimesDir.rmdir("../" + m_flimesDir.dirName());
+
+    m_cleanupDone = true;
 }
 
 bool ExternalControl::setFps(const AppDescr &appDescr, double fps)

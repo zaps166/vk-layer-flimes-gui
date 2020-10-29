@@ -295,14 +295,33 @@ MainWindow::MainWindow(QWidget *parent)
     if (m_settings->value("Visible", true).toBool())
         show();
 
+    connect(qApp, &QApplication::commitDataRequest,
+            this, [this](QSessionManager &sessionManager) {
+        Q_UNUSED(sessionManager)
+        onQuit();
+    });
 }
 MainWindow::~MainWindow()
 {
-    QCoreApplication::instance()->removeNativeEventFilter(m_x11ActiveWindow.get());
+    if (m_x11ActiveWindow->isOk())
+        QCoreApplication::instance()->removeNativeEventFilter(m_x11ActiveWindow.get());
+    if (m_x11GlobalHotkey->isOk())
+        QCoreApplication::instance()->removeNativeEventFilter(m_x11GlobalHotkey.get());
+
+    onQuit();
+}
+
+void MainWindow::setOnQuitFn(const OnQuitFn &fn)
+{
+    m_onQuitFn = fn;
+}
+
+void MainWindow::onQuit()
+{
+    if (m_onQuitDone)
+        return;
 
     m_settings->setValue("Visible", isVisible());
-
-    hide();
 
     if (m_externalControl->isOk() && (m_inactiveFpsChecked->isChecked() || m_batteryFpsChecked->isChecked()))
     {
@@ -342,6 +361,13 @@ MainWindow::~MainWindow()
         m_settings->setValue(it.key() + "/Inactive", settings.inactive);
         m_settings->setValue(it.key() + "/Battery", settings.battery);
     }
+
+    if (m_onQuitFn)
+        m_onQuitFn();
+
+    m_externalControl->cleanup();
+
+    m_onQuitDone = true;
 }
 
 inline QListWidgetItem *MainWindow::getSelectedItem() const

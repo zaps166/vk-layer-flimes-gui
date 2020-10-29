@@ -28,6 +28,8 @@
 
 #include <QMainWindow>
 
+#include <functional>
+
 class ExternalControl;
 class X11ActiveWindow;
 class X11GlobalHotkey;
@@ -47,6 +49,8 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    using OnQuitFn = std::function<void()>;
+
     struct AppSettings
     {
         bool modified = false;
@@ -60,7 +64,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void setOnQuitFn(const OnQuitFn &fn);
+
 private:
+    void onQuit();
+
     inline QListWidgetItem *getSelectedItem() const;
 
     void toggleBypass();
@@ -123,4 +131,7 @@ private:
     QtKeySequence m_bypassHotkey;
 
     QByteArray m_geo;
+
+    OnQuitFn m_onQuitFn;
+    bool m_onQuitDone = false;
 };

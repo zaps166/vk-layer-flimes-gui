@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     app.setApplicationDisplayName("GUI for vk-layer-flimes external control");
     app.setApplicationVersion(VK_LAYER_FLIMES_GUI_VERSION);
     app.setWindowIcon(QIcon::fromTheme("vk-layer-flimes-gui"));
+    app.setFallbackSessionManagementEnabled(false);
     app.setQuitOnLastWindowClosed(false);
 
     const auto tmpPath = filesystem::temp_directory_path().concat(("/" + app.applicationName() + "." + QString(getenv("USER"))).toStdString());
@@ -72,15 +73,14 @@ int main(int argc, char *argv[])
         mkfifo(tmpPath.c_str(), 0600);
     }
 
+    MainWindow w;
     if (const int fd = open(tmpPath.c_str(), O_RDONLY | O_NONBLOCK); fd > -1)
     {
-        QObject::connect(&app, &QCoreApplication::aboutToQuit, [=] {
+        w.setOnQuitFn([=] {
             close(fd);
             filesystem::remove(tmpPath);
         });
     }
-
-    MainWindow w;
 
     return app.exec();
 }

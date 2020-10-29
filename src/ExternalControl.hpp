@@ -46,6 +46,8 @@ public:
 
     inline bool isOk() const;
 
+    void cleanup();
+
     inline const std::vector<AppDescr> &applications() const;
 
     bool setFps(const AppDescr &app, double fps);
@@ -66,6 +68,7 @@ private:
     QFileSystemWatcher m_watcher;
 
     bool m_ok = false;
+    bool m_cleanupDone = false;
 
     std::vector<AppDescr> m_applications;
 };
