@@ -44,6 +44,7 @@
 #include <QSettings>
 #include <qevent.h>
 #include <QMenuBar>
+#include <QSpinBox>
 #include <QLabel>
 #include <QDebug>
 #include <QTimer>
@@ -74,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_appInactiveEnabled(new QCheckBox(m_inactiveFpsChecked->text()))
     , m_appBatteryEnabled(new QCheckBox(m_batteryFpsChecked->text()))
     , m_updateAppsFpsTimer(new QTimer(this))
+    , m_bypassTimer(new QTimer(this))
 {
     for (auto &&group : m_settings->childGroups())
     {
@@ -111,6 +113,7 @@ MainWindow::MainWindow(QWidget *parent)
     {
         mainMenu->addAction("&Set bypass hotkey", this, &MainWindow::setBypassHotkey);
     }
+    mainMenu->addAction("&Set bypass duration", this, &MainWindow::setBypassDuration);
     mainMenu->addSeparator();
     mainMenu->addAction("&Quit", this, &MainWindow::quit, QKeySequence("Ctrl+Q"));
 
@@ -156,6 +159,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_appBatteryEnabled->setToolTip("Allow FPS limit if system runs on battery");
 
     m_updateAppsFpsTimer->setInterval(125);
+
+    m_bypassTimer->setInterval(m_settings->value("BypassDuration").toInt() * 1000);
 
     auto hLine = new QFrame;
     hLine->setFrameShape(QFrame::HLine);
@@ -220,6 +225,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(m_bypassAct, &QAction::toggled,
             this, [this](bool checked) {
+        if (checked && m_bypassTimer->interval() > 0)
+            m_bypassTimer->start();
+        else
+            m_bypassTimer->stop();
         centralWidget()->setEnabled(!checked);
         updateAppsFpsLater();
     });
@@ -259,6 +268,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(m_updateAppsFpsTimer, &QTimer::timeout,
             this, &MainWindow::updateAppsFps);
+
+    connect(m_bypassTimer, &QTimer::timeout,
+            this, [this] {
+        m_bypassAct->setChecked(false);
+    });
 
     updateAppsList();
 
@@ -349,6 +363,7 @@ void MainWindow::onQuit()
     {
         m_settings->setValue("BypassHotkey", reinterpret_cast<qulonglong &>(m_bypassHotkey));
     }
+    m_settings->setValue("BypassDuration", m_bypassTimer->interval() / 1000);
     m_settings->setValue("Geometry", m_geo.toBase64().constData());
 
     for (auto it = m_appSettings.begin(), itEnd = m_appSettings.end(); it != itEnd; ++it)
@@ -505,6 +520,42 @@ void MainWindow::setBypassHotkey()
     m_bypassHotkey = d.getKeySequence();
 
     registerHotkey();
+}
+void MainWindow::setBypassDuration()
+{
+    const int bypassDuration = m_bypassTimer->interval() / 1000;
+
+    QDialog d;
+
+    QSpinBox durationSpinBox;
+    durationSpinBox.setRange(0, 300);
+    durationSpinBox.setSuffix(" sec");
+    durationSpinBox.setSpecialValueText("No duration");
+    durationSpinBox.setValue(bypassDuration);
+
+    QDialogButtonBox bb(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+    connect(&bb, &QDialogButtonBox::accepted,
+            &d, &QDialog::accept);
+    connect(&bb, &QDialogButtonBox::rejected,
+            &d, &QDialog::reject);
+
+    QVBoxLayout l(&d);
+    l.addWidget(&durationSpinBox);
+    l.addWidget(&bb);
+
+    if (d.exec() != QDialog::Accepted)
+        return;
+
+    if (bypassDuration == durationSpinBox.value())
+        return;
+
+    m_bypassTimer->setInterval(durationSpinBox.value() * 1000);
+
+    if (m_bypassTimer->interval() == 0)
+        m_bypassTimer->stop();
+    else if (m_bypassAct->isChecked() && !m_bypassTimer->isActive())
+        m_bypassTimer->start();
 }
 
 bool MainWindow::registerHotkey()

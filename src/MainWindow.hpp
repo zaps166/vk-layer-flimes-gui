@@ -83,6 +83,7 @@ private:
     void appsListSelectionChanged();
 
     void setBypassHotkey();
+    void setBypassDuration();
 
     bool registerHotkey();
 
@@ -129,6 +130,7 @@ private:
     pid_t m_activeWindowPid = 0;
 
     QtKeySequence m_bypassHotkey;
+    QTimer *const m_bypassTimer;
 
     QByteArray m_geo;
 
