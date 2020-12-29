@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     app.setApplicationName(VK_LAYER_FLIMES_GUI_NAME);
     app.setApplicationDisplayName("GUI for vk-layer-flimes external control");
     app.setApplicationVersion(VK_LAYER_FLIMES_GUI_VERSION);
-    app.setWindowIcon(QIcon::fromTheme("vk-layer-flimes-gui"));
+    app.setWindowIcon(QIcon::fromTheme("vk_layer_flimes_gui"));
     app.setFallbackSessionManagementEnabled(false);
     app.setQuitOnLastWindowClosed(false);
 

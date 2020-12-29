@@ -1,6 +1,6 @@
 [Desktop Entry]
 Exec=vk-layer-flimes-gui
-Icon=vk-layer-flimes-gui
+Icon=vk_layer_flimes_gui
 Name=Flimes Vulkan layer GUI
 Comment=GUI for vk-layer-flimes external control
 StartupNotify=false
