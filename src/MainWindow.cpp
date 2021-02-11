@@ -308,6 +308,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (m_settings->value("Visible", true).toBool())
         show();
+    else
+        m_canAutoRefresh = true;
 
     connect(qApp, &QApplication::commitDataRequest,
             this, [this](QSessionManager &sessionManager) {
@@ -586,11 +588,18 @@ void MainWindow::quit()
 
 void MainWindow::showEvent(QShowEvent *e)
 {
+    if (m_canAutoRefresh)
+    {
+        if (!m_externalControl->applications().empty())
+            m_externalControl->refresh();
+        m_canAutoRefresh = false;
+    }
     restoreGeometry(m_geo);
     QMainWindow::showEvent(e);
 }
 void MainWindow::hideEvent(QHideEvent *e)
 {
+    m_canAutoRefresh = true;
     m_geo = saveGeometry();
     QMainWindow::hideEvent(e);
 }

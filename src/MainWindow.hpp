@@ -132,6 +132,8 @@ private:
     QtKeySequence m_bypassHotkey;
     QTimer *const m_bypassTimer;
 
+    bool m_canAutoRefresh = false;
+
     QByteArray m_geo;
 
     OnQuitFn m_onQuitFn;
