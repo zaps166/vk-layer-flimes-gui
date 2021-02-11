@@ -33,7 +33,7 @@ add_executable(${PROJECT_NAME}
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
     -DVK_LAYER_FLIMES_GUI_NAME="vk-layer-flimes-gui"
-    -DVK_LAYER_FLIMES_GUI_VERSION="1.2.1"
+    -DVK_LAYER_FLIMES_GUI_VERSION="1.3.0"
 )
 
 target_include_directories(${PROJECT_NAME}
