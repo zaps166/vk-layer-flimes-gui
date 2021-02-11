@@ -39,6 +39,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QDataStream>
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QSettings>
@@ -51,8 +52,6 @@
 #include <QMenu>
 
 using namespace std;
-
-static_assert(sizeof(QtKeySequence) == sizeof(qulonglong));
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -210,8 +209,8 @@ MainWindow::MainWindow(QWidget *parent)
         updateAppsFps();
     });
     connect(m_x11GlobalHotkey.get(), &X11GlobalHotkey::activated,
-            this, [this](const QtKeySequence &qKeySeq) {
-        Q_UNUSED(qKeySeq)
+            this, [this](const KeySequence &keySeq) {
+        Q_UNUSED(keySeq)
         toggleBypass();
     });
     connect(m_powerSupply.get(), &PowerSupply::powerSourceChanged,
@@ -285,9 +284,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (m_x11GlobalHotkey->isOk())
     {
-        const auto bypassHotkeyInt = m_settings->value("BypassHotkey").toULongLong();
-        memcpy(&m_bypassHotkey, &bypassHotkeyInt, sizeof(qulonglong));
-        if (!registerHotkey())
+        const auto data = QByteArray::fromBase64(m_settings->value("BypassHotkey").toByteArray());
+        QDataStream stream(data);
+        stream >> m_bypassHotkey.text >> m_bypassHotkey.mod >> m_bypassHotkey.key;
+        if (stream.status() == QDataStream::Ok)
+            QTimer::singleShot(0, this, &MainWindow::registerHotkey);
+        else
             m_bypassHotkey = {};
     }
 
@@ -363,7 +365,10 @@ void MainWindow::onQuit()
     }
     if (m_x11GlobalHotkey->isOk())
     {
-        m_settings->setValue("BypassHotkey", reinterpret_cast<qulonglong &>(m_bypassHotkey));
+        QByteArray data;
+        QDataStream stream(&data, QIODevice::WriteOnly);
+        stream << m_bypassHotkey.text << m_bypassHotkey.mod << m_bypassHotkey.key;
+        m_settings->setValue("BypassHotkey", data.toBase64().constData());
     }
     m_settings->setValue("BypassDuration", m_bypassTimer->interval() / 1000);
     m_settings->setValue("Geometry", m_geo.toBase64().constData());
@@ -513,13 +518,10 @@ void MainWindow::setBypassHotkey()
     HotkeyDialog d(this);
     d.setKeySequence(m_bypassHotkey);
 
-    if (d.exec() != QDialog::Accepted)
-        return;
+    m_x11GlobalHotkey->unregisterKeySequence(m_bypassHotkey);
 
-    if (m_bypassHotkey.mod() && m_bypassHotkey.key())
-        m_x11GlobalHotkey->unregisterKeySequence(m_bypassHotkey);
-
-    m_bypassHotkey = d.getKeySequence();
+    if (d.exec() == QDialog::Accepted)
+        m_bypassHotkey = d.getKeySequence();
 
     registerHotkey();
 }
@@ -560,16 +562,22 @@ void MainWindow::setBypassDuration()
         m_bypassTimer->start();
 }
 
-bool MainWindow::registerHotkey()
+void MainWindow::registerHotkey()
 {
-    if (m_bypassHotkey.mod() && m_bypassHotkey.key())
-    {
-        if (m_x11GlobalHotkey->registerKeySequence(m_bypassHotkey))
-            return true;
+    if (m_x11GlobalHotkey->registerKeySequence(m_bypassHotkey))
+        return;
 
-        qWarning() << "Can't register bypass hotkey";
+    if (m_bypassHotkey.key && m_bypassHotkey.mod)
+    {
+        const auto response = QMessageBox::warning(
+            this,
+            QString(),
+            "Can't register the bypass hotkey: <b>" + m_bypassHotkey.text + "</b>. Do you want to keep this hotkey?",
+            QMessageBox::Yes | QMessageBox::No
+        );
+        if (response == QMessageBox::No)
+            m_bypassHotkey = {};
     }
-    return false;
 }
 
 void MainWindow::quit()

@@ -85,7 +85,7 @@ private:
     void setBypassHotkey();
     void setBypassDuration();
 
-    bool registerHotkey();
+    void registerHotkey();
 
     void quit();
 
@@ -129,7 +129,7 @@ private:
 
     pid_t m_activeWindowPid = 0;
 
-    QtKeySequence m_bypassHotkey;
+    KeySequence m_bypassHotkey;
     QTimer *const m_bypassTimer;
 
     bool m_canAutoRefresh = false;

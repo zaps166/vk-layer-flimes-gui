@@ -22,7 +22,7 @@ HotkeyDialog::HotkeyDialog(QWidget *parent)
             this, [this] {
         m_label->clear();
         m_record->setChecked(false);
-        m_qKeySeq = {};
+        m_keySeq = {};
     });
 
     connect(bb, &QDialogButtonBox::accepted,
@@ -48,61 +48,18 @@ HotkeyDialog::~HotkeyDialog()
 {
 }
 
-bool HotkeyDialog::setKeySequence(const QtKeySequence &qKeySeq)
+bool HotkeyDialog::setKeySequence(const KeySequence &keySeq)
 {
-    QString shortcutStr;
+    if (keySeq.text.isEmpty() || !keySeq.mod || !keySeq.key)
+        return false;
 
-    auto appendModifierStr = [&](Qt::KeyboardModifiers modifier) {
-        QString text;
-        switch (modifier)
-        {
-            case Qt::ShiftModifier:
-                text = "Shift";
-                break;
-            case Qt::ControlModifier:
-                text = "Ctrl";
-                break;
-            case Qt::AltModifier:
-                text = "Alt";
-                break;
-            case Qt::MetaModifier:
-                text = "Meta";
-                break;
-        }
-        if (!text.isEmpty())
-        {
-            if (!shortcutStr.isEmpty())
-                shortcutStr += "+";
-            shortcutStr += text;
-        }
-    };
-    appendModifierStr(qKeySeq.mod() & Qt::MetaModifier);
-    appendModifierStr(qKeySeq.mod() & Qt::ControlModifier);
-    appendModifierStr(qKeySeq.mod() & Qt::AltModifier);
-    appendModifierStr(qKeySeq.mod() & Qt::ShiftModifier);
-
-    if (!shortcutStr.isEmpty()
-            && ((qKeySeq.key() >= Qt::Key_A && qKeySeq.key() <= Qt::Key_Z)
-                || (qKeySeq.key() >= Qt::Key_0 && qKeySeq.key() <= Qt::Key_9)
-                || (qKeySeq.key() >= Qt::Key_F1 && qKeySeq.key() <= Qt::Key_F35)))
-    {
-        shortcutStr += "+";
-
-        if (qKeySeq.key() >= Qt::Key_F1 && qKeySeq.key() <= Qt::Key_F35)
-            shortcutStr += QString("F%1").arg(qKeySeq.key() - Qt::Key_F1 + 1);
-        else
-            shortcutStr += QString(qKeySeq.key());
-
-        m_label->setText(shortcutStr);
-        m_qKeySeq = qKeySeq;
-        return true;
-    }
-
-    return false;
+    m_label->setText(keySeq.text);
+    m_keySeq = keySeq;
+    return true;
 }
-QtKeySequence HotkeyDialog::getKeySequence() const
+KeySequence HotkeyDialog::getKeySequence() const
 {
-    return m_qKeySeq;
+    return m_keySeq;
 }
 
 bool HotkeyDialog::event(QEvent *e)
@@ -110,8 +67,133 @@ bool HotkeyDialog::event(QEvent *e)
     if (m_record->isChecked() && e->type() == QEvent::KeyPress)
     {
         auto ke = reinterpret_cast<QKeyEvent *>(e);
-        if (!ke->isAutoRepeat() && setKeySequence({QGuiApplication::keyboardModifiers(), static_cast<Qt::Key>(ke->key())}))
-            m_record->setChecked(false);
+
+        bool keyIsModifier = false;
+        switch (ke->key())
+        {
+            case Qt::Key_Shift:
+            case Qt::Key_Control:
+            case Qt::Key_Meta:
+            case Qt::Key_Alt:
+            case Qt::Key_Super_L:
+            case Qt::Key_Super_R:
+                keyIsModifier = true;
+                break;
+        }
+
+        if (!keyIsModifier && !ke->isAutoRepeat())
+        {
+            QString shortcutStr;
+
+            auto appendModifierStr = [&](Qt::KeyboardModifiers modifier) {
+                QString text;
+                switch (modifier)
+                {
+                    case Qt::ShiftModifier:
+                        text = "Shift";
+                        break;
+                    case Qt::ControlModifier:
+                        text = "Ctrl";
+                        break;
+                    case Qt::AltModifier:
+                        text = "Alt";
+                        break;
+                    case Qt::MetaModifier:
+                        text = "Meta";
+                        break;
+                }
+                if (!text.isEmpty())
+                {
+                    if (!shortcutStr.isEmpty())
+                        shortcutStr += "+";
+                    shortcutStr += text;
+                }
+            };
+
+            const auto modifiers = ke->modifiers();
+            appendModifierStr(modifiers & Qt::MetaModifier);
+            appendModifierStr(modifiers & Qt::ControlModifier);
+            appendModifierStr(modifiers & Qt::AltModifier);
+            appendModifierStr(modifiers & Qt::ShiftModifier);
+
+            if (!shortcutStr.isEmpty())
+            {
+                auto key = ke->key();
+                if (modifiers & Qt::ShiftModifier)
+                {
+                    switch (ke->nativeVirtualKey())
+                    {
+                        case '~':
+                            key = '`';
+                            break;
+                        case '!':
+                            key = '1';
+                            break;
+                        case '@':
+                            key = '2';
+                            break;
+                        case '#':
+                            key = '3';
+                            break;
+                        case '$':
+                            key = '4';
+                            break;
+                        case '%':
+                            key = '5';
+                            break;
+                        case '^':
+                            key = '6';
+                            break;
+                        case '&':
+                            key = '7';
+                            break;
+                        case '*':
+                            key = '8';
+                            break;
+                        case '(':
+                            key = '9';
+                            break;
+                        case ')':
+                            key = '0';
+                            break;
+                        case '_':
+                            key = '-';
+                            break;
+                        case '+':
+                            key = '=';
+                            break;
+                        case '{':
+                            key = '[';
+                            break;
+                        case '}':
+                            key = ']';
+                            break;
+                        case '|':
+                            key = '\\';
+                            break;
+                        case ':':
+                            key = ';';
+                            break;
+                        case '"':
+                            key = '\'';
+                            break;
+                        case '<':
+                            key = ',';
+                            break;
+                        case '>':
+                            key = '.';
+                            break;
+                        case '?':
+                            key = '/';
+                            break;
+                    }
+                }
+                shortcutStr += "+" + QKeySequence(key).toString();
+            }
+
+            if (setKeySequence({shortcutStr, ke->nativeModifiers(), ke->nativeScanCode()}))
+                m_record->setChecked(false);
+        }
     }
     return QDialog::event(e);
 }

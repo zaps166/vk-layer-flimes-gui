@@ -24,32 +24,11 @@
 
 #pragma once
 
-#include <qnamespace.h>
+#include <QString>
 
-template<typename T1, typename T2>
-struct KeySequence : public std::pair<T1, T2>
+struct KeySequence
 {
-    KeySequence() = default;
-    KeySequence(T1 mod, T2 key)
-        : std::pair<T1, T2>(mod, key)
-    {}
-
-    const T1 &mod() const
-    {
-        return std::pair<T1, T2>::first;
-    }
-    T1 &mod()
-    {
-        return std::pair<T1, T2>::first;
-    }
-
-    const T2 &key() const
-    {
-        return std::pair<T1, T2>::second;
-    }
-    T2 &key()
-    {
-        return std::pair<T1, T2>::second;
-    }
+    QString text;
+    quint32 mod = 0;
+    quint32 key = 0;
 };
-using QtKeySequence = KeySequence<Qt::KeyboardModifiers, Qt::Key>;

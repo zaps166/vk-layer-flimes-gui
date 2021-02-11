@@ -39,8 +39,8 @@ public:
     HotkeyDialog(QWidget *parent = nullptr);
     ~HotkeyDialog();
 
-    bool setKeySequence(const QtKeySequence &qKeySeq);
-    QtKeySequence getKeySequence() const;
+    bool setKeySequence(const KeySequence &keySeq);
+    KeySequence getKeySequence() const;
 
 private:
     bool event(QEvent *e) override;
@@ -51,5 +51,5 @@ private:
     QPushButton *const m_clear;
     QPushButton *const m_record;
 
-    QtKeySequence m_qKeySeq;
+    KeySequence m_keySeq;
 };

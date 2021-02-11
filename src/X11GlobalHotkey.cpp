@@ -27,7 +27,9 @@
 
 #include <QDebug>
 
-constexpr auto g_XK_F1 = 0xffbe;
+#include <algorithm>
+
+using namespace std;
 
 X11GlobalHotkey::X11GlobalHotkey()
     : m_conn(QX11Info::connection())
@@ -35,48 +37,19 @@ X11GlobalHotkey::X11GlobalHotkey()
     if (!m_conn)
         return;
 
-    m_keySyms = xcb_key_symbols_alloc(m_conn);
-
     m_ok = true;
 }
 X11GlobalHotkey::~X11GlobalHotkey()
 {
     unregisterKeySequences();
-    xcb_key_symbols_free(m_keySyms);
 }
 
-bool X11GlobalHotkey::registerKeySequence(const QtKeySequence &qKeySeq)
+bool X11GlobalHotkey::registerKeySequence(const KeySequence &keySeq)
 {
-    X11KeySequence x11KeySeq;
-
-    if (m_qKeySequences.count(qKeySeq) > 0)
+    if (!keySeq.key || !keySeq.mod)
         return false;
 
-    xcb_keysym_t keySymbol = 0;
-    if ((qKeySeq.key() >= Qt::Key_A && qKeySeq.key() <= Qt::Key_Z) || (qKeySeq.key() >= Qt::Key_0 && qKeySeq.key() <= Qt::Key_9))
-        keySymbol = qKeySeq.key();
-    else if (qKeySeq.key() >= Qt::Key_F1 && qKeySeq.key() <= Qt::Key_F35)
-        keySymbol = g_XK_F1 + (qKeySeq.key() - Qt::Key_F1);
-    else
-        return false;
-
-    if (qKeySeq.mod() & Qt::ShiftModifier)
-        x11KeySeq.mod() |= XCB_MOD_MASK_SHIFT;
-    if (qKeySeq.mod() & Qt::ControlModifier)
-        x11KeySeq.mod() |= XCB_MOD_MASK_CONTROL;
-    if (qKeySeq.mod() & Qt::AltModifier)
-        x11KeySeq.mod() |= XCB_MOD_MASK_1;
-    if (qKeySeq.mod() & Qt::MetaModifier)
-        x11KeySeq.mod() |= XCB_MOD_MASK_4;
-
-    auto keycodes = xcb_key_symbols_get_keycode(m_keySyms, keySymbol);
-    if (!keycodes)
-        return false;
-
-    x11KeySeq.key() = keycodes[0];
-    free(keycodes);
-
-    if (x11KeySeq.key() == XCB_NO_SYMBOL)
+    if (auto it = findKeySeq(keySeq); it != m_keySequences.end())
         return false;
 
     auto errReply = XCB_CALL_VOID_CHECKED(
@@ -84,48 +57,63 @@ bool X11GlobalHotkey::registerKeySequence(const QtKeySequence &qKeySeq)
         QX11Info::connection(),
         1,
         QX11Info::appRootWindow(),
-        x11KeySeq.mod(),
-        x11KeySeq.key(),
+        keySeq.mod,
+        keySeq.key,
         XCB_GRAB_MODE_ASYNC,
         XCB_GRAB_MODE_ASYNC
     );
     if (errReply)
         return false;
 
-    m_qKeySequences[qKeySeq] = x11KeySeq;
-    m_xKeySequences[x11KeySeq] = qKeySeq;
+    m_keySequences.push_back(keySeq);
     return true;
 }
 
-bool X11GlobalHotkey::unregisterKeySequence(const QtKeySequence &qKeySeq)
+bool X11GlobalHotkey::unregisterKeySequence(const KeySequence &keySeq)
 {
-    auto it = m_qKeySequences.find(qKeySeq);
-    if (it == m_qKeySequences.end())
+    if (!keySeq.mod || !keySeq.key)
         return false;
 
-    auto errReply = XCB_CALL_VOID_CHECKED(
-        xcb_ungrab_key,
-        QX11Info::connection(),
-        it->first.key(),
-        QX11Info::appRootWindow(),
-        it->first.mod()
-    );
-    if (errReply)
+    auto it = findKeySeq(keySeq);
+    if (it == m_keySequences.end())
         return false;
 
-    m_xKeySequences.erase(it->second);
-    m_qKeySequences.erase(it);
+    if (!unregisterKeySequenceInternal(*it))
+        return false;
+
+    m_keySequences.erase(it);
     return true;
 }
 bool X11GlobalHotkey::unregisterKeySequences()
 {
     bool ok = false;
 
-    auto qHotkeys = m_qKeySequences;
-    for (auto &&qKeySeq : qHotkeys)
-        ok |= unregisterKeySequence(qKeySeq.first);
+    for (auto &&keySeq : m_keySequences)
+        ok |= unregisterKeySequenceInternal(keySeq);
+    m_keySequences.clear();
 
     return ok;
+}
+
+X11GlobalHotkey::KeySequenceList::iterator X11GlobalHotkey::findKeySeq(const KeySequence &keySeq)
+{
+    return find_if(m_keySequences.begin(), m_keySequences.end(), [&](const KeySequence &it) {
+        return (it.mod == keySeq.mod && it.key == keySeq.key);
+    });
+}
+
+bool X11GlobalHotkey::unregisterKeySequenceInternal(const KeySequence &keySeq)
+{
+    auto errReply = XCB_CALL_VOID_CHECKED(
+        xcb_ungrab_key,
+        QX11Info::connection(),
+        keySeq.key,
+        QX11Info::appRootWindow(),
+        keySeq.mod
+    );
+    if (errReply)
+        return false;
+    return true;
 }
 
 bool X11GlobalHotkey::nativeEventFilter(const QByteArray &eventType, void *message, long *)
@@ -139,14 +127,14 @@ bool X11GlobalHotkey::nativeEventFilter(const QByteArray &eventType, void *messa
 
     auto kev = reinterpret_cast<xcb_key_press_event_t *>(message);
 
-    X11KeySequence x11KeySeq;
-    x11KeySeq.mod() = kev->state & (XCB_MOD_MASK_SHIFT | XCB_MOD_MASK_CONTROL | XCB_MOD_MASK_1 | XCB_MOD_MASK_4);
-    x11KeySeq.key() = kev->detail;
+    KeySequence keySeq;
+    keySeq.mod = kev->state & (XCB_MOD_MASK_SHIFT | XCB_MOD_MASK_CONTROL | XCB_MOD_MASK_1 | XCB_MOD_MASK_4);
+    keySeq.key = kev->detail;
 
-    auto it = m_xKeySequences.find(x11KeySeq);
-    if (it == m_xKeySequences.end())
+    auto it = findKeySeq(keySeq);
+    if (it == m_keySequences.end())
         return false;
 
-    emit activated(it->second);
+    emit activated(*it);
     return true;
 }

@@ -30,15 +30,13 @@
 #include <QX11Info>
 #include <QObject>
 
-#include <map>
-
-#include <xcb/xcb_keysyms.h>
+#include <deque>
 
 class X11GlobalHotkey : public QObject, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 
-    using X11KeySequence = KeySequence<uint16_t, xcb_keycode_t>;
+    using KeySequenceList = std::deque<KeySequence>;
 
 public:
     X11GlobalHotkey();
@@ -46,10 +44,15 @@ public:
 
     inline bool isOk() const;
 
-    bool registerKeySequence(const QtKeySequence &qKeySeq);
+    bool registerKeySequence(const KeySequence &keySeq);
 
-    bool unregisterKeySequence(const QtKeySequence &qKeySeq);
+    bool unregisterKeySequence(const KeySequence &keySeq);
     bool unregisterKeySequences();
+
+private:
+    KeySequenceList::iterator findKeySeq(const KeySequence &keySeq);
+
+    bool unregisterKeySequenceInternal(const KeySequence &keySeq);
 
 private:
     bool nativeEventFilter(const QByteArray &eventType, void *message, long *) override;
@@ -57,15 +60,12 @@ private:
 private:
     xcb_connection_t *const m_conn;
 
-    xcb_key_symbols_t *m_keySyms = nullptr;
-
     bool m_ok = false;
 
-    std::map<QtKeySequence, X11KeySequence> m_qKeySequences;
-    std::map<X11KeySequence, QtKeySequence> m_xKeySequences;
+    KeySequenceList m_keySequences;
 
 signals:
-    void activated(const QtKeySequence &qKeySeq);
+    void activated(const KeySequence &keySeq);
 };
 
 /* Inline implementation */

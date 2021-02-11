@@ -17,7 +17,7 @@ find_package(Qt${QT_VERSION_MAJOR}
 
 find_package(PkgConfig REQUIRED)
 
-pkg_check_modules(XCB REQUIRED xcb xcb-keysyms)
+pkg_check_modules(XCB REQUIRED xcb)
 pkg_check_modules(UDEV REQUIRED libudev)
 
 include(GNUInstallDirs)
