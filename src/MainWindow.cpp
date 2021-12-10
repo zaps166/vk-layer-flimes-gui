@@ -316,6 +316,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(qApp, &QApplication::commitDataRequest,
             this, [this](QSessionManager &sessionManager) {
         Q_UNUSED(sessionManager)
+        beforeQuit();
         onQuit();
     });
 }
@@ -334,6 +335,13 @@ void MainWindow::setOnQuitFn(const OnQuitFn &fn)
     m_onQuitFn = fn;
 }
 
+void MainWindow::beforeQuit()
+{
+    if (m_onQuitDone)
+        return;
+
+    m_geo = saveGeometry();
+}
 void MainWindow::onQuit()
 {
     if (m_onQuitDone)
@@ -582,6 +590,7 @@ void MainWindow::registerHotkey()
 
 void MainWindow::quit()
 {
+    beforeQuit();
     QCoreApplication::quit();
 }
 
@@ -593,13 +602,16 @@ void MainWindow::showEvent(QShowEvent *e)
             m_externalControl->refresh();
         m_canAutoRefresh = false;
     }
-    restoreGeometry(m_geo);
+    if (!m_geo.isEmpty())
+    {
+        restoreGeometry(m_geo);
+        m_geo.clear();
+    }
     QMainWindow::showEvent(e);
 }
 void MainWindow::hideEvent(QHideEvent *e)
 {
     m_canAutoRefresh = true;
-    m_geo = saveGeometry();
     QMainWindow::hideEvent(e);
 }
 void MainWindow::closeEvent(QCloseEvent *e)

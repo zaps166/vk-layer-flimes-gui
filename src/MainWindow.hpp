@@ -67,6 +67,7 @@ public:
     void setOnQuitFn(const OnQuitFn &fn);
 
 private:
+    void beforeQuit();
     void onQuit();
 
     inline QListWidgetItem *getSelectedItem() const;
