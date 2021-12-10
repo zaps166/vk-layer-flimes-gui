@@ -27,6 +27,7 @@
 #include "KeySequence.hpp"
 
 #include <QMainWindow>
+#include <QHash>
 
 #include <functional>
 
@@ -139,4 +140,5 @@ private:
 
     OnQuitFn m_onQuitFn;
     bool m_onQuitDone = false;
+    bool m_visibleOnQuit = false;
 };

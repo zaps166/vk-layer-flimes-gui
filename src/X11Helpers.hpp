@@ -24,6 +24,20 @@
 
 #pragma once
 
+#include <QtGlobal>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#   include <QtGui/private/qtx11extras_p.h>
+#else
+#   include <QX11Info>
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    using NativeEventFilterResult = qintptr;
+#else
+    using NativeEventFilterResult = long;
+#endif
+
 #include <cstdlib>
 #include <memory>
 

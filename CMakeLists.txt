@@ -4,13 +4,21 @@ project(vk-layer-flimes-gui LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(QT NAMES Qt6 Qt5)
-find_package(Qt${QT_VERSION_MAJOR}
-    COMPONENTS
-    Widgets
-    X11Extras
-    REQUIRED
-)
+option(BUILD_QT6 "Build with Qt6" ON)
+option(BUILD_QT5 "Build with Qt5" ON)
+
+if(BUILD_QT6 AND NOT BUILD_QT5)
+    set(QT6_MAYBE_REQUIRED REQUIRED)
+else()
+    unset(QT6_MAYBE_REQUIRED)
+endif()
+
+if(BUILD_QT6)
+    find_package(Qt6 COMPONENTS Widgets ${QT6_MAYBE_REQUIRED})
+endif()
+if(BUILD_QT5 AND NOT Qt6_FOUND)
+    find_package(Qt5 COMPONENTS Widgets X11Extras REQUIRED)
+endif()
 
 find_package(PkgConfig REQUIRED)
 
@@ -41,11 +49,21 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
-    Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::X11Extras
+    Qt::Widgets
     ${XCB_LINK_LIBRARIES}
     ${UDEV_LINK_LIBRARIES}
 )
+if (Qt5_FOUND)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        Qt::X11Extras
+    )
+elseif(Qt6_FOUND)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        Qt::GuiPrivate
+    )
+endif()
 
 install(TARGETS ${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_BINDIR}

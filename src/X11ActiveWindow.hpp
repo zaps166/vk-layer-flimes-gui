@@ -24,8 +24,9 @@
 
 #pragma once
 
+#include "X11Helpers.hpp"
+
 #include <QAbstractNativeEventFilter>
-#include <QX11Info>
 #include <QObject>
 #include <QTimer>
 
@@ -43,7 +44,7 @@ private:
     void activeWindowChanged();
 
 private:
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *) override;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, NativeEventFilterResult *result) override;
 
 signals:
     void activeWindowPidChanged(pid_t pid);

@@ -48,7 +48,9 @@ int main(int argc, char *argv[])
     app.setApplicationDisplayName("GUI for vk-layer-flimes external control");
     app.setApplicationVersion(VK_LAYER_FLIMES_GUI_VERSION);
     app.setWindowIcon(QIcon::fromTheme("vk_layer_flimes_gui"));
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     app.setFallbackSessionManagementEnabled(false);
+#endif
     app.setQuitOnLastWindowClosed(false);
 
     const auto tmpPath = filesystem::temp_directory_path().concat(("/" + app.applicationName() + "." + QString(getenv("USER"))).toStdString());

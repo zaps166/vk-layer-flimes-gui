@@ -25,9 +25,9 @@
 #pragma once
 
 #include "KeySequence.hpp"
+#include "X11Helpers.hpp"
 
 #include <QAbstractNativeEventFilter>
-#include <QX11Info>
 #include <QObject>
 
 #include <deque>
@@ -55,7 +55,7 @@ private:
     bool unregisterKeySequenceInternal(const KeySequence &keySeq);
 
 private:
-    bool nativeEventFilter(const QByteArray &eventType, void *message, long *) override;
+    bool nativeEventFilter(const QByteArray &eventType, void *message, NativeEventFilterResult *result) override;
 
 private:
     xcb_connection_t *const m_conn;

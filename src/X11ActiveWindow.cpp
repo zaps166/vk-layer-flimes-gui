@@ -23,7 +23,6 @@
 */
 
 #include "X11ActiveWindow.hpp"
-#include "X11Helpers.hpp"
 
 #include <QDebug>
 
@@ -77,8 +76,10 @@ void X11ActiveWindow::activeWindowChanged()
     emit activeWindowPidChanged(m_activeWindowPid);
 }
 
-bool X11ActiveWindow::nativeEventFilter(const QByteArray &eventType, void *message, long *)
+bool X11ActiveWindow::nativeEventFilter(const QByteArray &eventType, void *message, NativeEventFilterResult *result)
 {
+    Q_UNUSED(result)
+
     if (eventType != "xcb_generic_event_t")
         return false;
 

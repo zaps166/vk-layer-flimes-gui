@@ -23,7 +23,6 @@
 */
 
 #include "X11GlobalHotkey.hpp"
-#include "X11Helpers.hpp"
 
 #include <QDebug>
 
@@ -116,8 +115,10 @@ bool X11GlobalHotkey::unregisterKeySequenceInternal(const KeySequence &keySeq)
     return true;
 }
 
-bool X11GlobalHotkey::nativeEventFilter(const QByteArray &eventType, void *message, long *)
+bool X11GlobalHotkey::nativeEventFilter(const QByteArray &eventType, void *message, NativeEventFilterResult *result)
 {
+    Q_UNUSED(result)
+
     if (eventType != "xcb_generic_event_t")
         return false;
 

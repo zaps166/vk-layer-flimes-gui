@@ -174,7 +174,7 @@ MainWindow::MainWindow(QWidget *parent)
     vLine2->setFrameShadow(QFrame::Sunken);
 
     auto appSettingsLayout = new QHBoxLayout(m_appSettingsWidget);
-    appSettingsLayout->setMargin(0);
+    appSettingsLayout->setContentsMargins(0, 0, 0, 0);
     appSettingsLayout->addWidget(vLine1);
     appSettingsLayout->addStretch();
     appSettingsLayout->addWidget(m_appActiveEnabled);
@@ -341,13 +341,14 @@ void MainWindow::beforeQuit()
         return;
 
     m_geo = saveGeometry();
+    m_visibleOnQuit = isVisible();
 }
 void MainWindow::onQuit()
 {
     if (m_onQuitDone)
         return;
 
-    m_settings->setValue("Visible", isVisible());
+    m_settings->setValue("Visible", m_visibleOnQuit);
 
     if (m_externalControl->isOk() && (m_inactiveFpsChecked->isChecked() || m_batteryFpsChecked->isChecked()))
     {
