@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
-
 project(vk-layer-flimes-gui LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
-
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(QT NAMES Qt6 Qt5)
