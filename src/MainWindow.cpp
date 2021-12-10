@@ -582,16 +582,7 @@ void MainWindow::registerHotkey()
 
 void MainWindow::quit()
 {
-    auto choice = QMessageBox::question(
-        isVisible() ? this : nullptr,
-        QString(),
-        "Do you want to quit?",
-        QMessageBox::Yes, QMessageBox::No
-    );
-    if (choice == QMessageBox::Yes)
-    {
-        QCoreApplication::quit();
-    }
+    QCoreApplication::quit();
 }
 
 void MainWindow::showEvent(QShowEvent *e)
