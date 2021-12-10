@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.13)
 
 project(vk-layer-flimes-gui LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 
 set(CMAKE_CXX_STANDARD 17)
