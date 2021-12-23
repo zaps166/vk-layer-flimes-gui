@@ -80,9 +80,9 @@ MainWindow::MainWindow(QWidget *parent)
     {
         auto &settings = m_appSettings[group];
         settings.modified = true;
-        settings.active = m_settings->value(group + "/Active", true).toBool();
-        settings.inactive = m_settings->value(group + "/Inactive", true).toBool();
-        settings.battery = m_settings->value(group + "/Battery", true).toBool();
+        settings.active = m_settings->value(group + "/Active", settings.active).toBool();
+        settings.inactive = m_settings->value(group + "/Inactive", settings.inactive).toBool();
+        settings.battery = m_settings->value(group + "/Battery", settings.battery).toBool();
     }
 
     auto w = new QWidget;
