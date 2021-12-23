@@ -59,6 +59,9 @@ class MainWindow : public QMainWindow
         bool active = true;
         bool inactive = true;
         bool battery = true;
+
+        bool inactiveImmediateMode = false;
+        bool bypassImmediateMode = false;
     };
 
 public:
@@ -124,6 +127,8 @@ private:
     QCheckBox *const m_appActiveEnabled;
     QCheckBox *const m_appInactiveEnabled;
     QCheckBox *const m_appBatteryEnabled;
+    QCheckBox *const m_inactiveImmediateModeEnabled;
+    QCheckBox *const m_bypassImmediateModeEnabled;
 
     QHash<QString, AppSettings> m_appSettings;
 

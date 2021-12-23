@@ -66,14 +66,21 @@ void ExternalControl::cleanup()
     m_cleanupDone = true;
 }
 
-bool ExternalControl::setFps(const AppDescr &appDescr, double fps)
+bool ExternalControl::setData(const AppDescr &appDescr, double fps, const optional<bool> &forceImmediate)
 {
     const int fd = open(appDescr.file.toLocal8Bit().constData(), O_WRONLY | O_NONBLOCK);
     if (fd < 0)
         return false;
 
-    const auto str = QByteArray::number(fps, 'f', 3) + "\n";
-    const bool ok = (write(fd, str.constData(), str.size()) == str.size());
+    const auto fpsStr = QByteArray::number(fps, 'f', 3) + "\n";
+    QByteArray presentModeStr;
+    if (forceImmediate.has_value())
+        presentModeStr = forceImmediate.value() ? "IMMEDIATE\n" : "AUTO\n";
+
+    bool ok = true;
+    ok &= (write(fd, fpsStr.constData(), fpsStr.size()) == fpsStr.size());
+    if (!presentModeStr.isEmpty())
+        ok &= (write(fd, presentModeStr.constData(), presentModeStr.size()) == presentModeStr.size());
     close(fd);
 
     return ok;

@@ -28,6 +28,8 @@
 #include <QFile>
 #include <QDir>
 
+#include <optional>
+
 class ExternalControl : public QObject
 {
     Q_OBJECT
@@ -50,7 +52,7 @@ public:
 
     inline const std::vector<AppDescr> &applications() const;
 
-    bool setFps(const AppDescr &app, double fps);
+    bool setData(const AppDescr &appDescr, double fps, const std::optional<bool> &forceImmediate);
 
     void refresh();
 

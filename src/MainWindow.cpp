@@ -73,6 +73,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_appActiveEnabled(new QCheckBox(m_activeFpsChecked->text()))
     , m_appInactiveEnabled(new QCheckBox(m_inactiveFpsChecked->text()))
     , m_appBatteryEnabled(new QCheckBox(m_batteryFpsChecked->text()))
+    , m_inactiveImmediateModeEnabled(new QCheckBox("Inactive\nV-Sync OFF"))
+    , m_bypassImmediateModeEnabled(new QCheckBox("Bypass\nV-Sync OFF"))
     , m_updateAppsFpsTimer(new QTimer(this))
     , m_bypassTimer(new QTimer(this))
 {
@@ -83,6 +85,8 @@ MainWindow::MainWindow(QWidget *parent)
         settings.active = m_settings->value(group + "/Active", settings.active).toBool();
         settings.inactive = m_settings->value(group + "/Inactive", settings.inactive).toBool();
         settings.battery = m_settings->value(group + "/Battery", settings.battery).toBool();
+        settings.inactiveImmediateMode = m_settings->value(group + "/InactiveImmediateMode", settings.inactiveImmediateMode).toBool();
+        settings.bypassImmediateMode = m_settings->value(group + "/BypassImmediateMode", settings.bypassImmediateMode).toBool();
     }
 
     auto w = new QWidget;
@@ -180,6 +184,9 @@ MainWindow::MainWindow(QWidget *parent)
     appSettingsLayout->addWidget(m_appActiveEnabled);
     appSettingsLayout->addWidget(m_appInactiveEnabled);
     appSettingsLayout->addWidget(m_appBatteryEnabled);
+    appSettingsLayout->addWidget(m_appBatteryEnabled);
+    appSettingsLayout->addWidget(m_inactiveImmediateModeEnabled);
+    appSettingsLayout->addWidget(m_bypassImmediateModeEnabled);
     appSettingsLayout->addStretch();
     appSettingsLayout->addWidget(vLine2);
 
@@ -263,6 +270,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_appInactiveEnabled, &QCheckBox::toggled,
             this, &MainWindow::changeCurrAppSettings);
     connect(m_appBatteryEnabled, &QCheckBox::toggled,
+            this, &MainWindow::changeCurrAppSettings);
+    connect(m_inactiveImmediateModeEnabled, &QCheckBox::toggled,
+            this, &MainWindow::changeCurrAppSettings);
+    connect(m_bypassImmediateModeEnabled, &QCheckBox::toggled,
             this, &MainWindow::changeCurrAppSettings);
 
     connect(m_updateAppsFpsTimer, &QTimer::timeout,
@@ -357,7 +368,13 @@ void MainWindow::onQuit()
             : 0.0
         ;
         for (auto &&app : m_externalControl->applications())
-            m_externalControl->setFps(app, m_appSettings[app.name].active ? fps : 0.0);
+        {
+            auto &settings = m_appSettings[app.name];
+            optional<bool> forceImmediate;
+            if (settings.inactiveImmediateMode || (settings.bypassImmediateMode && m_bypassAct->isChecked()))
+                forceImmediate = false;
+            m_externalControl->setData(app, settings.active ? fps : 0.0, forceImmediate);
+        }
     }
 
     m_settings->setValue("ActiveFpsChecked", m_activeFpsChecked->isChecked());
@@ -391,6 +408,8 @@ void MainWindow::onQuit()
         m_settings->setValue(it.key() + "/Active", settings.active);
         m_settings->setValue(it.key() + "/Inactive", settings.inactive);
         m_settings->setValue(it.key() + "/Battery", settings.battery);
+        m_settings->setValue(it.key() + "/InactiveImmediateMode", settings.inactiveImmediateMode);
+        m_settings->setValue(it.key() + "/BypassImmediateMode", settings.bypassImmediateMode);
     }
 
     if (m_onQuitFn)
@@ -468,18 +487,29 @@ void MainWindow::updateAppsFps()
     for (auto &&app : m_externalControl->applications())
     {
         double fps = 0.0;
+        optional<bool> forceImmediate;
+        auto &settings = m_appSettings[app.name];
         if (!bypass)
         {
             const bool active = (app.pid == m_activeWindowPid);
-            auto &settings = m_appSettings[app.name];
+
             if (settings.active)
                 fps = activeFps;
             if (!active && settings.inactive)
                 fps = inactiveFps;
             if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
                 fps = batteryFps;
+
+            if (settings.inactiveImmediateMode)
+                forceImmediate = !active;
+            else if (settings.bypassImmediateMode)
+                forceImmediate = false;
         }
-        m_externalControl->setFps(app, fps);
+        else if (settings.bypassImmediateMode)
+        {
+             forceImmediate = true;
+        }
+        m_externalControl->setData(app, fps, forceImmediate);
     }
 }
 
@@ -494,6 +524,8 @@ void MainWindow::changeCurrAppSettings()
     settings.active = m_appActiveEnabled->isChecked();
     settings.inactive = m_appInactiveEnabled->isChecked();
     settings.battery = m_appBatteryEnabled->isChecked();
+    settings.inactiveImmediateMode = m_inactiveImmediateModeEnabled->isChecked();
+    settings.bypassImmediateMode = m_bypassImmediateModeEnabled->isChecked();
 
     updateAppsFpsLater();
 }
@@ -511,6 +543,8 @@ void MainWindow::appsListSelectionChanged()
         QSignalBlocker(m_appActiveEnabled),
         QSignalBlocker(m_appInactiveEnabled),
         QSignalBlocker(m_appBatteryEnabled),
+        QSignalBlocker(m_inactiveImmediateModeEnabled),
+        QSignalBlocker(m_bypassImmediateModeEnabled),
     };
 
     auto &settings = m_appSettings[item->data(Qt::UserRole).toString()];
@@ -518,6 +552,8 @@ void MainWindow::appsListSelectionChanged()
     m_appActiveEnabled->setChecked(settings.active);
     m_appInactiveEnabled->setChecked(settings.inactive);
     m_appBatteryEnabled->setChecked(settings.battery);
+    m_inactiveImmediateModeEnabled->setChecked(settings.inactiveImmediateMode);
+    m_bypassImmediateModeEnabled->setChecked(settings.bypassImmediateMode);
 
     m_appSettingsWidget->show();
 }
