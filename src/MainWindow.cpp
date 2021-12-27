@@ -496,40 +496,41 @@ void MainWindow::updateAppsFps()
     ;
 
     const bool battery = (m_powerSupply->isOk() && m_powerSupply->isBattery());
-
-    bool bypass = m_bypassAct->isChecked();
+    const bool bypass = m_bypassAct->isChecked();
 
     for (auto &&app : m_externalControl->applications())
     {
+        const bool active = (!m_x11ActiveWindow->isOk() || app.pid == m_activeWindowPid);
+        auto &settings = m_appSettings[app.name];
+
         double fps = 0.0;
         optional<bool> forceImmediate;
-        auto &settings = m_appSettings[app.name];
+
+        if (settings.inactiveImmediateMode)
+            forceImmediate = !active;
+
         if (!bypass)
         {
-            const bool active = (app.pid == m_activeWindowPid);
-
             if (settings.active)
                 fps = activeFps;
             if (!active && settings.inactive)
                 fps = inactiveFps;
             if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
                 fps = batteryFps;
-
-            if (settings.inactiveImmediateMode)
-                forceImmediate = !active;
-            else if (settings.bypassImmediateMode)
-                forceImmediate = false;
         }
-        else if (settings.bypassImmediateMode)
+        else
         {
-             forceImmediate = true;
+            if (settings.bypassImmediateMode)
+                forceImmediate = true;
         }
+
         if (settings.immediateModeModified && !settings.inactiveImmediateMode && !settings.bypassImmediateMode)
         {
             Q_ASSERT(!forceImmediate.has_value());
             forceImmediate = false;
             settings.immediateModeModified = false;
         }
+
         m_externalControl->setData(app, fps, forceImmediate);
     }
 }
