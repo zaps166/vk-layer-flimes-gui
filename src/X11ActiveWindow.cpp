@@ -56,24 +56,37 @@ X11ActiveWindow::~X11ActiveWindow()
 
 void X11ActiveWindow::activeWindowChanged()
 {
+    auto emitActiveWindowPidChanged = [this](pid_t pid) {
+        if (m_activeWindowPid != pid)
+        {
+            m_activeWindowPid = pid;
+            emit activeWindowPidChanged(m_activeWindowPid);
+        }
+    };
+
     auto activeWindowReply = XCB_CALL(xcb_get_property, m_conn, false, m_pevWindow, _NET_ACTIVE_WINDOW, XCB_GET_PROPERTY_TYPE_ANY, 0, ~0);
     if (!activeWindowReply || activeWindowReply->type == 0)
+    {
+        emitActiveWindowPidChanged(0);
         return;
+    }
 
     xcb_window_t activeWindow = reinterpret_cast<uint32_t *>(xcb_get_property_value(activeWindowReply.get()))[0];
     if (activeWindow == 0)
+    {
+        emitActiveWindowPidChanged(0);
         return;
+    }
 
     auto pidReply = XCB_CALL(xcb_get_property, m_conn, false, activeWindow, _NET_WM_PID, XCB_GET_PROPERTY_TYPE_ANY, 0, ~0);
     if (!pidReply || pidReply->type == 0)
+    {
+        emitActiveWindowPidChanged(0);
         return;
+    }
 
     pid_t activeWindowPid = reinterpret_cast<uint32_t *>(xcb_get_property_value(pidReply.get()))[0];
-    if (m_activeWindowPid == activeWindowPid)
-        return;
-
-    m_activeWindowPid = activeWindowPid;
-    emit activeWindowPidChanged(m_activeWindowPid);
+    emitActiveWindowPidChanged(activeWindowPid);
 }
 
 bool X11ActiveWindow::nativeEventFilter(const QByteArray &eventType, void *message, NativeEventFilterResult *result)
