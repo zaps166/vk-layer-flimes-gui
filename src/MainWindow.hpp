@@ -62,6 +62,8 @@ class MainWindow : public QMainWindow
 
         bool inactiveImmediateMode = false;
         bool bypassImmediateMode = false;
+
+        bool immediateModeModified = false;
     };
 
 public:
