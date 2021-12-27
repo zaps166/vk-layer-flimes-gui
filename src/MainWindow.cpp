@@ -186,7 +186,10 @@ MainWindow::MainWindow(QWidget *parent)
     appSettingsLayout->addWidget(m_appInactiveEnabled);
     appSettingsLayout->addWidget(m_appBatteryEnabled);
     appSettingsLayout->addWidget(m_appBatteryEnabled);
-    appSettingsLayout->addWidget(m_inactiveImmediateModeEnabled);
+    if (m_x11ActiveWindow->isOk())
+    {
+        appSettingsLayout->addWidget(m_inactiveImmediateModeEnabled);
+    }
     appSettingsLayout->addWidget(m_bypassImmediateModeEnabled);
     appSettingsLayout->addStretch();
     appSettingsLayout->addWidget(vLine2);
