@@ -132,15 +132,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     if (m_x11ActiveWindow->isOk())
     {
-        m_inactiveFpsChecked->setToolTip("Some X11 applications might not set the \"_NET_WM_PID\" property.\n"
-                                         "All these applications will be treated as inactive.\n"
-                                         "To workaround the issue, unset \"Inactive\" for this application.");
+        const QString commonInfo =
+            "Some X11 applications might not set the \"_NET_WM_PID\" property.\n"
+            "All these applications will be treated as inactive."
+        ;
+
+        m_inactiveFpsChecked->setToolTip(commonInfo + "\nTo workaround the issue, unset \"Inactive\" for this application.");
         m_inactiveFpsChecked->setChecked(m_settings->value("InactiveFpsChecked").toBool());
         m_inactiveFps->setDecimals(3);
         m_inactiveFps->setRange(1.0, 1000.0);
         m_inactiveFps->setSuffix(" FPS");
         m_inactiveFps->setValue(m_settings->value("InactiveFps", 20.0).toDouble());
         m_inactiveFps->setEnabled(m_inactiveFpsChecked->isChecked());
+
+        m_inactiveImmediateModeEnabled->setToolTip(commonInfo);
     }
 
     if (m_powerSupply->isOk())
