@@ -380,7 +380,7 @@ void MainWindow::onQuit()
 
     m_settings->setValue("Visible", m_visibleOnQuit);
 
-    if (m_externalControl->isOk() && (m_inactiveFpsChecked->isChecked() || m_batteryFpsChecked->isChecked()))
+    if (m_externalControl->isOk())
     {
         const double fps = m_activeFpsChecked->isChecked()
             ? m_activeFps->value()
