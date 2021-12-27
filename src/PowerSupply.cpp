@@ -25,6 +25,7 @@
 #include "PowerSupply.hpp"
 
 #include <QSocketNotifier>
+#include <QTimer>
 #include <QDir>
 
 PowerSupply::PowerSupply()
@@ -50,7 +51,7 @@ PowerSupply::PowerSupply()
 
     m_ok = true;
 
-    checkBattery();
+    QTimer::singleShot(0, this, &PowerSupply::checkBattery);
 }
 PowerSupply::~PowerSupply()
 {
