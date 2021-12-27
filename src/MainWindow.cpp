@@ -51,6 +51,8 @@
 #include <QTimer>
 #include <QMenu>
 
+bool MainWindow::s_inactiveImmediateModeDefault = false;
+
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -78,6 +80,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_updateAppsFpsTimer(new QTimer(this))
     , m_bypassTimer(new QTimer(this))
 {
+    s_inactiveImmediateModeDefault = m_settings->value("InactiveImmediateModeDefault").toBool();
+
     for (auto &&group : m_settings->childGroups())
     {
         auto &settings = m_appSettings[group];
@@ -119,9 +123,16 @@ MainWindow::MainWindow(QWidget *parent)
     }
     mainMenu->addAction("&Set bypass duration", this, &MainWindow::setBypassDuration);
     mainMenu->addSeparator();
+    auto inactiveImmediateModeDefaultAct = mainMenu->addAction("&Disable V-Sync for inactive applications by default");
+    mainMenu->addSeparator();
     mainMenu->addAction("&Quit", this, &MainWindow::quit, QKeySequence("Ctrl+Q"));
 
     m_bypassAct->setCheckable(true);
+
+    inactiveImmediateModeDefaultAct->setCheckable(true);
+    inactiveImmediateModeDefaultAct->setChecked(s_inactiveImmediateModeDefault);
+    if (!m_x11ActiveWindow->isOk())
+        inactiveImmediateModeDefaultAct->setVisible(false);
 
     m_activeFpsChecked->setChecked(m_settings->value("ActiveFpsChecked").toBool());
     m_activeFps->setDecimals(3);
@@ -256,6 +267,24 @@ MainWindow::MainWindow(QWidget *parent)
             m_bypassTimer->stop();
         centralWidget()->setEnabled(!checked);
         updateAppsFpsLater();
+    });
+    connect(inactiveImmediateModeDefaultAct, &QAction::toggled,
+            this, [this](bool checked) {
+        bool changed = false;
+        s_inactiveImmediateModeDefault = checked;
+        for (auto &&settings : m_appSettings)
+        {
+            if (!settings.modified && settings.inactiveImmediateMode != checked)
+            {
+                settings.inactiveImmediateMode = checked;
+                changed = true;
+            }
+        }
+        if (changed)
+        {
+            appsListSelectionChanged();
+            updateAppsFpsLater();
+        }
     });
 
     connect(m_activeFpsChecked, &QCheckBox::toggled,
@@ -395,6 +424,8 @@ void MainWindow::onQuit()
             m_externalControl->setData(app, settings.active ? fps : 0.0, forceImmediate);
         }
     }
+
+    m_settings->setValue("InactiveImmediateModeDefault", s_inactiveImmediateModeDefault);
 
     m_settings->setValue("ActiveFpsChecked", m_activeFpsChecked->isChecked());
     m_settings->setValue("ActiveFps", m_activeFps->value());

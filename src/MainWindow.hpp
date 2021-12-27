@@ -52,6 +52,8 @@ class MainWindow : public QMainWindow
 
     using OnQuitFn = std::function<void()>;
 
+    static bool s_inactiveImmediateModeDefault;
+
     struct AppSettings
     {
         bool modified = false;
@@ -60,10 +62,10 @@ class MainWindow : public QMainWindow
         bool inactive = true;
         bool battery = true;
 
-        bool inactiveImmediateMode = false;
+        bool inactiveImmediateMode = s_inactiveImmediateModeDefault;
         bool bypassImmediateMode = false;
 
-        bool immediateModeModified = false;
+        bool immediateModeModified = (inactiveImmediateMode || bypassImmediateMode);
     };
 
 public:
