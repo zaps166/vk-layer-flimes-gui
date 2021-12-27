@@ -401,7 +401,8 @@ void MainWindow::beforeQuit()
     if (m_onQuitDone)
         return;
 
-    m_geo = saveGeometry();
+    if (m_geo.isEmpty())
+        m_geo = saveGeometry();
     m_visibleOnQuit = isVisible();
 }
 void MainWindow::onQuit()
@@ -710,6 +711,7 @@ void MainWindow::showEvent(QShowEvent *e)
 void MainWindow::hideEvent(QHideEvent *e)
 {
     m_canAutoRefresh = true;
+    m_geo = saveGeometry();
     QMainWindow::hideEvent(e);
 }
 void MainWindow::closeEvent(QCloseEvent *e)
