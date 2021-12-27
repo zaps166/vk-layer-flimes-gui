@@ -135,7 +135,7 @@ MainWindow::MainWindow(QWidget *parent)
         inactiveImmediateModeDefaultAct->setVisible(false);
 
     m_activeFpsChecked->setChecked(m_settings->value("ActiveFpsChecked").toBool());
-    m_activeFps->setDecimals(3);
+    m_activeFps->setDecimals(4);
     m_activeFps->setRange(1.0, 1000.0);
     m_activeFps->setSuffix(" FPS");
     m_activeFps->setValue(m_settings->value("ActiveFps", 60.0).toDouble());
@@ -150,7 +150,7 @@ MainWindow::MainWindow(QWidget *parent)
 
         m_inactiveFpsChecked->setToolTip(commonInfo + "\nTo workaround the issue, unset \"Inactive\" for this application.");
         m_inactiveFpsChecked->setChecked(m_settings->value("InactiveFpsChecked").toBool());
-        m_inactiveFps->setDecimals(3);
+        m_inactiveFps->setDecimals(4);
         m_inactiveFps->setRange(1.0, 1000.0);
         m_inactiveFps->setSuffix(" FPS");
         m_inactiveFps->setValue(m_settings->value("InactiveFps", 20.0).toDouble());
@@ -162,7 +162,7 @@ MainWindow::MainWindow(QWidget *parent)
     if (m_powerSupply->isOk())
     {
         m_batteryFpsChecked->setChecked(m_settings->value("BatteryFpsChecked").toBool());
-        m_batteryFps->setDecimals(3);
+        m_batteryFps->setDecimals(4);
         m_batteryFps->setRange(1.0, 1000.0);
         m_batteryFps->setSuffix(" FPS");
         m_batteryFps->setValue(m_settings->value("BatteryFps", 30.0).toDouble());
