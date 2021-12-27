@@ -85,18 +85,22 @@ void PowerSupply::socketActivated()
 
 void PowerSupply::checkBattery()
 {
-    bool isBattery = true;
+    bool isBattery = false;
 
     const auto powerSources = QDir("/sys/class/power_supply").entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
-    if (powerSources.empty())
-    {
-        isBattery = false;
-    }
-    else for (auto &&powerSource : powerSources)
+    for (auto &&powerSource : powerSources)
     {
         const auto type = readFile(powerSource.filePath() + "/type");
         const auto online = readFile(powerSource.filePath() + "/online");
-        if (type != "battery" && !online.isEmpty() && online != "0")
+        const auto scope = readFile(powerSource.filePath() + "/scope");
+        if (type == "battery")
+        {
+            if (scope.isEmpty() || scope == "system")
+            {
+                isBattery = true;
+            }
+        }
+        else if (!online.isEmpty() && online != "0")
         {
             isBattery = false;
             break;
