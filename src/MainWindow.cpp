@@ -73,8 +73,8 @@ MainWindow::MainWindow(QWidget *parent)
     , m_appActiveEnabled(new QCheckBox(m_activeFpsChecked->text()))
     , m_appInactiveEnabled(new QCheckBox(m_inactiveFpsChecked->text()))
     , m_appBatteryEnabled(new QCheckBox(m_batteryFpsChecked->text()))
-    , m_inactiveImmediateModeEnabled(new QCheckBox("Inactive\nV-Sync OFF"))
-    , m_bypassImmediateModeEnabled(new QCheckBox("Bypass\nV-Sync OFF"))
+    , m_inactiveImmediateModeEnabled(new QCheckBox("Inactive V-Sync OFF"))
+    , m_bypassImmediateModeEnabled(new QCheckBox("Bypass V-Sync OFF"))
     , m_updateAppsFpsTimer(new QTimer(this))
     , m_bypassTimer(new QTimer(this))
 {
@@ -183,6 +183,10 @@ MainWindow::MainWindow(QWidget *parent)
     vLine2->setFrameShape(QFrame::VLine);
     vLine2->setFrameShadow(QFrame::Sunken);
 
+    auto vLine3 = new QFrame;
+    vLine3->setFrameShape(QFrame::VLine);
+    vLine3->setFrameShadow(QFrame::Sunken);
+
     auto appSettingsLayout = new QHBoxLayout(m_appSettingsWidget);
     appSettingsLayout->setContentsMargins(0, 0, 0, 0);
     appSettingsLayout->addWidget(vLine1);
@@ -190,14 +194,14 @@ MainWindow::MainWindow(QWidget *parent)
     appSettingsLayout->addWidget(m_appActiveEnabled);
     appSettingsLayout->addWidget(m_appInactiveEnabled);
     appSettingsLayout->addWidget(m_appBatteryEnabled);
-    appSettingsLayout->addWidget(m_appBatteryEnabled);
+    appSettingsLayout->addWidget(vLine2);
     if (m_x11ActiveWindow->isOk())
     {
         appSettingsLayout->addWidget(m_inactiveImmediateModeEnabled);
     }
     appSettingsLayout->addWidget(m_bypassImmediateModeEnabled);
     appSettingsLayout->addStretch();
-    appSettingsLayout->addWidget(vLine2);
+    appSettingsLayout->addWidget(vLine3);
 
     auto topLayout = new QFormLayout;
     topLayout->addRow(m_activeFpsChecked, m_activeFps);
