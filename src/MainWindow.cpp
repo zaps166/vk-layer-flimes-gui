@@ -221,7 +221,13 @@ MainWindow::MainWindow(QWidget *parent)
         toggleBypass();
     });
     connect(m_powerSupply.get(), &PowerSupply::powerSourceChanged,
-            this, &MainWindow::updateAppsFpsLater);
+            this, [this] {
+        auto font = m_batteryFpsChecked->font();
+        font.setBold(m_powerSupply->isBattery());
+        m_batteryFpsChecked->setFont(font);
+
+        updateAppsFpsLater();
+    });
 
     connect(m_tray, &QSystemTrayIcon::activated,
             this, [this](QSystemTrayIcon::ActivationReason reason) {
