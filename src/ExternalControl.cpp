@@ -99,6 +99,10 @@ void ExternalControl::dirContentsChanged(const QString &path)
 
     m_applications.clear();
 
+    const QStringList appsToSkip {
+        "explorer.exe",
+    };
+
     const auto procList = QDir("/proc").entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
     const auto files = m_flimesDir.entryInfoList(QDir::System, QDir::Time);
@@ -133,7 +137,8 @@ void ExternalControl::dirContentsChanged(const QString &path)
             continue;
         }
 
-        m_applications.push_back(move(appDescr));
+        if (!appsToSkip.contains(appDescr.name))
+            m_applications.push_back(move(appDescr));
     }
 
     emit applicationsChanged();
