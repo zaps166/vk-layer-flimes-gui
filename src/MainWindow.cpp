@@ -274,9 +274,9 @@ MainWindow::MainWindow(QWidget *parent)
         s_inactiveImmediateModeDefault = checked;
         for (auto &&settings : m_appSettings)
         {
-            if (!settings.modified && settings.inactiveImmediateMode != checked)
+            if (!settings.modified && settings.inactiveImmediateMode != s_inactiveImmediateModeDefault)
             {
-                settings.inactiveImmediateMode = checked;
+                settings.inactiveImmediateMode = s_inactiveImmediateModeDefault;
                 changed = true;
             }
         }
