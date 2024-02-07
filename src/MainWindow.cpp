@@ -547,6 +547,9 @@ void MainWindow::updateAppsFps()
         if (settings.inactiveImmediateMode)
             forceImmediate = !active;
 
+        if (settings.bypassImmediateMode && (!forceImmediate.has_value() || bypass))
+            forceImmediate = bypass;
+
         if (!bypass)
         {
             if (settings.active)
@@ -555,11 +558,6 @@ void MainWindow::updateAppsFps()
                 fps = inactiveFps;
             if (battery && settings.battery && (fps == 0.0 || batteryFps < fps))
                 fps = batteryFps;
-        }
-        else
-        {
-            if (settings.bypassImmediateMode)
-                forceImmediate = true;
         }
 
         if (settings.immediateModeModified && !settings.inactiveImmediateMode && !settings.bypassImmediateMode)
